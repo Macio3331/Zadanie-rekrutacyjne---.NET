@@ -12,7 +12,7 @@ using Zadanie_rekrutacyjne.Database;
 namespace Zadanie_rekrutacyjne.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240331104439_Init")]
+    [Migration("20240331205200_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -41,7 +41,7 @@ namespace Zadanie_rekrutacyjne.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("share")
+                    b.Property<double>("Share")
                         .HasColumnType("float");
 
                     b.HasKey("Id");

@@ -5,6 +5,6 @@
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public int? Count { get; set; } = 0;
-        public double share { get; set; } = 0.0;
+        public double Share { get; set; } = 0.0;
     }
 }

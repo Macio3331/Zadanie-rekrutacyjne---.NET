@@ -18,7 +18,7 @@ namespace Zadanie_rekrutacyjne.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
-                    share = table.Column<double>(type: "float", nullable: false)
+                    Share = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {

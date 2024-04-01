@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Zadanie_rekrutacyjne.Interfaces;
+using Zadanie_rekrutacyjne.Models;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -9,35 +10,62 @@ namespace Zadanie_rekrutacyjne.Controllers
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private ITagsService _service;
-        private ILogger<TagsController> _logger;
-        private TagsSeeder _seeder;
+        private readonly ITagsService _service;
+        private readonly ILogger<TagsController> _logger;
+        private bool _firstSeeded = false;
 
-        TagsController(ITagsService service, ILogger<TagsController> logger, TagsSeeder seeder)
+        public TagsController(ITagsService service, ILogger<TagsController> logger)
         {
             _service = service;
             _logger = logger;
-            _seeder = seeder;
         }
 
         // GET: api/tags
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public async Task<ActionResult<IEnumerable<TagModel>>> Get([FromQuery]int page = 1, [FromQuery]string sortBy = "name", [FromQuery]string order = "asc")
         {
-            return Ok(new string[] { "value1", "value2" });
-        }
-
-        // POST api/tags
-        [HttpPost]
-        public ActionResult Post()
-        {
+            if(!_firstSeeded)
+            {
+                _firstSeeded = true;
+                try
+                {
+                    await _service.Seed();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex.Message);
+                    //TODO: changing ActionResult
+                    return BadRequest();
+                }
+            }
+            IEnumerable<TagModel> tags = new List<TagModel>();
             try
             {
-                _seeder.Seed();
+                tags = await _service.GetTags(page, sortBy, order);
             }
             catch (Exception ex)
             {
-                _logger.Log(LogLevel.Error, ex.Message);
+                _logger.LogError(ex.Message);
+                //TODO: changing ActionResult
+                return BadRequest();
+            }
+            return Ok(tags);
+        }
+
+        // POST: api/tags
+        [HttpPost]
+        public async Task<ActionResult> Post()
+        {
+            try
+            {
+                _firstSeeded = true;
+                await _service.Seed();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                //TODO: changing ActionResult
+                return BadRequest();
             }
             
             return Ok();

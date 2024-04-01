@@ -38,7 +38,7 @@ namespace Zadanie_rekrutacyjne.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<double>("share")
+                    b.Property<double>("Share")
                         .HasColumnType("float");
 
                     b.HasKey("Id");

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Serilog;
 using Zadanie_rekrutacyjne.Interfaces;
 using Zadanie_rekrutacyjne.Models;
 
@@ -11,43 +12,37 @@ namespace Zadanie_rekrutacyjne.Controllers
     public class TagsController : ControllerBase
     {
         private readonly ITagsService _service;
-        private readonly ILogger<TagsController> _logger;
-        private bool _firstSeeded = false;
+        private readonly WasLoadedModel _loadedModel;
 
-        public TagsController(ITagsService service, ILogger<TagsController> logger)
+        public TagsController(ITagsService service, WasLoadedModel loadedModel)
         {
             _service = service;
-            _logger = logger;
+            _loadedModel = loadedModel;
         }
 
         // GET: api/tags
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TagModel>>> Get([FromQuery]int page = 1, [FromQuery]string sortBy = "name", [FromQuery]string order = "asc")
+        public async Task<ActionResult<IEnumerable<TagModel>>> Get([FromQuery(Name = "page")]int page = 1, [FromQuery(Name = "sortBy")]string sortBy = "name", [FromQuery(Name = "order")]string order = "asc")
         {
-            if(!_firstSeeded)
+            if (!_loadedModel.WasLoaded)
             {
-                _firstSeeded = true;
-                try
-                {
-                    await _service.Seed();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.Message);
-                    //TODO: changing ActionResult
-                    return BadRequest();
-                }
+                if (!await SeedData()) return StatusCode(500, "Unexpected problem occured.");
+                _loadedModel.WasLoaded = true;
             }
             IEnumerable<TagModel> tags = new List<TagModel>();
             try
             {
                 tags = await _service.GetTags(page, sortBy, order);
             }
+            catch(ArgumentException ex)
+            {
+                Log.Information(ex.Message);
+                return BadRequest(ex.Message);
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                //TODO: changing ActionResult
-                return BadRequest();
+                Log.Error(ex.Message);
+                return StatusCode(500, "Unexpected problem occured.");
             }
             return Ok(tags);
         }
@@ -56,19 +51,27 @@ namespace Zadanie_rekrutacyjne.Controllers
         [HttpPost]
         public async Task<ActionResult> Post()
         {
+            if (!await SeedData()) return StatusCode(500, "Unexpected problem occured.");
+            return Ok();
+        }
+
+        private async Task<bool> SeedData()
+        {
             try
             {
-                _firstSeeded = true;
                 await _service.Seed();
+            }
+            catch (HttpRequestException ex)
+            {
+                Log.Error(ex.Message);
+                return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                //TODO: changing ActionResult
-                return BadRequest();
+                Log.Error(ex.Message);
+                return false;
             }
-            
-            return Ok();
+            return true;
         }
     }
 }

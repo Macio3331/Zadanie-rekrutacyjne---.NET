@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Serilog;
 using Zadanie_rekrutacyjne.Database;
 using Zadanie_rekrutacyjne.Interfaces;
 using Zadanie_rekrutacyjne.Models;
@@ -17,9 +18,11 @@ namespace Zadanie_rekrutacyjne.Services
 
         public async Task<List<TagModel>> GetTags(int page, string sortBy, string order)
         {
-            //TODO: Finding right exception
+            Log.Information("GET service method invoked.");
             if ((sortBy != "name" && sortBy != "share") || (order != "asc" && order != "desc") || (page - 1) * pageSize >= _context.Tags.Count())
-                throw new Exception("Bad query parameter.");
+            {
+                throw new ArgumentException("Bad query parameter.");
+            }
             bool lastPage = (page * pageSize > _context.Tags.Count());
             bool ascOrder = (order == "asc");
             bool sortByName = (sortBy == "name");
@@ -55,18 +58,15 @@ namespace Zadanie_rekrutacyjne.Services
 
         public async Task Seed()
         {
+            Log.Information("POST service method invoked.");
             try
             {
                 List<TagModel> list = await TagsLoader.Load();
-                _context.Tags.ExecuteDelete();
-                _context.Tags.AddRange(list);
+                await _context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE Tags");
+                await _context.Tags.AddRangeAsync(list);
                 _context.SaveChanges();
             }
-            catch (DbUpdateException ex)
-            {
-                throw ex;
-            }
-            catch(HttpRequestException ex)
+            catch (HttpRequestException ex)
             {
                 throw ex;
             }

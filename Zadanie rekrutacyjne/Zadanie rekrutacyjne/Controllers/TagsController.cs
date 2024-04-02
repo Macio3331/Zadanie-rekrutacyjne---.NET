@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Serilog;
+using System.ComponentModel.DataAnnotations;
 using Zadanie_rekrutacyjne.Interfaces;
 using Zadanie_rekrutacyjne.Models;
 
@@ -7,28 +8,59 @@ using Zadanie_rekrutacyjne.Models;
 
 namespace Zadanie_rekrutacyjne.Controllers
 {
+    /// <summary>
+    /// Controller managing the operations connected with tags.
+    /// </summary>
     [Route("api/tags")]
     [ApiController]
     public class TagsController : ControllerBase
     {
+        /// <summary>
+        /// Service object for tags' operations.
+        /// </summary>
         private readonly ITagsService _service;
+
+        /// <summary>
+        /// Object storing information that the database was at least once supplied with data from StackOverflow API.
+        /// </summary>
         private readonly WasLoadedModel _loadedModel;
 
+        /// <summary>
+        /// Default constructor of controller.
+        /// </summary>
+        /// <param name="service">Service instance with scoped range.</param>
+        /// <param name="loadedModel">Model object with singleton range.</param>
         public TagsController(ITagsService service, WasLoadedModel loadedModel)
         {
             _service = service;
             _loadedModel = loadedModel;
         }
 
+        /// <summary>
+        /// Endpoint used for getting a proper page of tags sorted by name or share in all population in ascending or descending order. 
+        /// </summary>
+        /// <param name="page">Number of page to get.</param>
+        /// <param name="sortBy">Specifies if data should be sorted by count share in population or by name. Accepted values: "name", "share".</param>
+        /// <param name="order">Specifies the order of sorting. Accepts values: "asc" (ascending order), "desc" (descending order).</param>
+        /// <returns>List of 50 TagModel objects enclosed in ResultObject (status code and body of response).</returns>
+        /// <response code="200">Returns the list of tags.</response>
+        /// <response code="400">Returned when there are some mistakes in query string.</response> 
+        /// <response code="500">Returned when there is an error on server-side.</response> 
         // GET: api/tags
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TagModel>>> Get([FromQuery(Name = "page")]int page = 1, [FromQuery(Name = "sortBy")]string sortBy = "name", [FromQuery(Name = "order")]string order = "asc")
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<ActionResult<IEnumerable<TagModel>>> Get([FromQuery][Required]int page, [FromQuery][Required]string sortBy, [FromQuery][Required]string order)
         {
+            if(page < 0) return BadRequest("Bad query parameter.");
+
             if (!_loadedModel.WasLoaded)
             {
                 if (!await SeedData()) return StatusCode(500, "Unexpected problem occured.");
                 _loadedModel.WasLoaded = true;
             }
+
             IEnumerable<TagModel> tags = new List<TagModel>();
             try
             {
@@ -44,17 +76,30 @@ namespace Zadanie_rekrutacyjne.Controllers
                 Log.Error(ex.Message);
                 return StatusCode(500, "Unexpected problem occured.");
             }
+
             return Ok(tags);
         }
 
+        /// <summary>
+        /// Endpoint that is used for resending request to StackOverflow API that makes program upload data into database.
+        /// </summary>
+        /// <returns>ResultObject (status code and body of response).</returns>
+        /// <response code="200">Returned when the action was completed successfully.</response>
+        /// <response code="500">Returned when there is an error on server-side.</response> 
         // POST: api/tags
         [HttpPost]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(500)]
         public async Task<ActionResult> Post()
         {
             if (!await SeedData()) return StatusCode(500, "Unexpected problem occured.");
             return Ok();
         }
 
+        /// <summary>
+        /// Private method used whenever there is a need to file a database with new data from StackOverflow API.
+        /// </summary>
+        /// <returns>Boolean value specifying if the seeding was fortunate.</returns>
         private async Task<bool> SeedData()
         {
             try
@@ -71,6 +116,7 @@ namespace Zadanie_rekrutacyjne.Controllers
                 Log.Error(ex.Message);
                 return false;
             }
+
             return true;
         }
     }

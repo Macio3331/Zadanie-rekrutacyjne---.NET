@@ -19,12 +19,10 @@ namespace Zadanie_rekrutacyjne.Controllers
         /// Service object for tags' operations.
         /// </summary>
         private readonly ITagsService _service;
-
         /// <summary>
         /// Object storing information that the database was at least once supplied with data from StackOverflow API.
         /// </summary>
         private readonly WasLoadedModel _loadedModel;
-
         /// <summary>
         /// Default constructor of controller.
         /// </summary>
@@ -35,7 +33,6 @@ namespace Zadanie_rekrutacyjne.Controllers
             _service = service;
             _loadedModel = loadedModel;
         }
-
         /// <summary>
         /// Endpoint used for getting a proper page of tags sorted by name or share in all population in ascending or descending order. 
         /// </summary>
@@ -51,20 +48,21 @@ namespace Zadanie_rekrutacyjne.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<IEnumerable<TagModel>>> Get([FromQuery][Required]int page, [FromQuery][Required]string sortBy, [FromQuery][Required]string order)
+        public async Task<ActionResult<IEnumerable<TagModel>>> GetTagsAsync([FromQuery][Required]int page, [FromQuery][Required]string sortBy, [FromQuery][Required]string order)
         {
             if(page < 0) return BadRequest("Bad query parameter.");
 
             if (!_loadedModel.WasLoaded)
             {
-                if (!await SeedData()) return StatusCode(500, "Unexpected problem occured.");
+                var result = await SeedData();
+                if (!result.Key) return StatusCode(500, result.Value);
                 _loadedModel.WasLoaded = true;
             }
 
             IEnumerable<TagModel> tags = new List<TagModel>();
             try
             {
-                tags = await _service.GetTags(page, sortBy, order);
+                tags = await _service.GetTagsAsync(page, sortBy, order, 50);
             }
             catch(ArgumentException ex)
             {
@@ -79,7 +77,6 @@ namespace Zadanie_rekrutacyjne.Controllers
 
             return Ok(tags);
         }
-
         /// <summary>
         /// Endpoint that is used for resending request to StackOverflow API that makes program upload data into database.
         /// </summary>
@@ -90,34 +87,33 @@ namespace Zadanie_rekrutacyjne.Controllers
         [HttpPost]
         [ProducesResponseType(200)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult> Post()
+        public async Task<ActionResult> FetchNewTagsAsync()
         {
-            if (!await SeedData()) return StatusCode(500, "Unexpected problem occured.");
+            var result = await SeedData();
+            if (!result.Key) return StatusCode(500, result.Value);
             return Ok();
         }
-
         /// <summary>
         /// Private method used whenever there is a need to file a database with new data from StackOverflow API.
         /// </summary>
         /// <returns>Boolean value specifying if the seeding was fortunate.</returns>
-        private async Task<bool> SeedData()
+        private async Task<KeyValuePair<bool, string>> SeedData()
         {
             try
             {
-                await _service.Seed();
+                await _service.SeedAsync();
             }
             catch (HttpRequestException ex)
             {
                 Log.Error(ex.Message);
-                return false;
+                return new KeyValuePair<bool, string>(false, "Unable to fetch API's data.");
             }
             catch (Exception ex)
             {
                 Log.Error(ex.Message);
-                return false;
+                return new KeyValuePair<bool, string>(false, "Internal server error. Unexpected problem occured");
             }
-
-            return true;
+            return new KeyValuePair<bool, string>(true, "");
         }
     }
 }

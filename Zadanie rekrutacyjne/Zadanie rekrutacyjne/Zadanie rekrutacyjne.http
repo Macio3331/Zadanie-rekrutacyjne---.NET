@@ -1,6 +1,6 @@
 @Zadanie_rekrutacyjne_HostAddress = http://localhost:5117
 
-GET {{Zadanie_rekrutacyjne_HostAddress}}/weatherforecast/
+GET {{Zadanie_rekrutacyjne_HostAddress}}/api/tags/
 Accept: application/json
 
 ###

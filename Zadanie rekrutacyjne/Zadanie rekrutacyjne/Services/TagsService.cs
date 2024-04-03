@@ -3,6 +3,7 @@ using Serilog;
 using Zadanie_rekrutacyjne.Database;
 using Zadanie_rekrutacyjne.Interfaces;
 using Zadanie_rekrutacyjne.Models;
+using Zadanie_rekrutacyjne.Repositories;
 
 namespace Zadanie_rekrutacyjne.Services
 {
@@ -12,20 +13,22 @@ namespace Zadanie_rekrutacyjne.Services
     public class TagsService : ITagsService
     {
         /// <summary>
-        /// Object representing a database.
+        /// Object representing a repository.
         /// </summary>
-        private readonly ApplicationDbContext _context;
+        private readonly ITagsRepository _repository;
         /// <summary>
-        /// Number of tags returned by service for one page. 
+        /// Object representing a tags processor.
         /// </summary>
-        private const int pageSize = 50;
+        private readonly ITagsApiClient _tagsApiClient;
         /// <summary>
         /// Default constructor of the service.
         /// </summary>
-        /// <param name="context">Object representing a database.</param>
-        public TagsService(ApplicationDbContext context)
+        /// <param name="repository">Object representing a repository.</param>
+        /// <param name="tagsApiClient">Object representing a tags processor.</param>
+        public TagsService(ITagsRepository repository, ITagsApiClient tagsApiClient)
         {
-            _context = context;
+            _repository = repository;
+            _tagsApiClient = tagsApiClient;
         }
         /// <summary>
         /// Method used for getting the tags.
@@ -33,13 +36,18 @@ namespace Zadanie_rekrutacyjne.Services
         /// <param name="page">Number of page to show.</param>
         /// <param name="sortBy">Specifies if data should be sorted by count share in population or by name. Accepted values: "name", "share".</param>
         /// <param name="order">Specifies the order of sorting. Accepts values: "asc" (ascending order), "desc" (descending order).</param>
+        /// <param name="pageSize">Specifies the number of tags on each page. Default value is 50.</param>
         /// <returns>List of 50 TagModel objects enclosed in ResultObject (status code and body of response).</returns>
-        public async Task<List<TagModel>> GetTags(int page, string sortBy, string order)
+        public async Task<List<TagModel>> GetTagsAsync(int page, string sortBy, string order, int pageSize = 50)
         {
             Log.Information("GET service method invoked.");
-            if ((sortBy != "name" && sortBy != "share") || (order != "asc" && order != "desc") || (page - 1) * pageSize >= _context.Tags.Count())
-                throw new ArgumentException("Bad query parameter.");
-            bool lastPage = (page * pageSize > _context.Tags.Count());
+            if (sortBy != "name" && sortBy != "share")
+                throw new ArgumentException("Invalid 'sortBy' query parameter. It must be 'name' or 'share'.");
+            if (order != "asc" && order != "desc")
+                throw new ArgumentException("Invalid 'share' query parameter. It must be 'asc' or 'desc'.");
+            if ((page - 1) * pageSize >= (await _repository.GetAllTagsAsync()).Count())
+                throw new ArgumentException("Invalid 'page' query parameter.");
+            bool lastPage = (page * pageSize > (await _repository.GetAllTagsAsync()).Count());
             bool ascOrder = (order == "asc");
             bool sortByName = (sortBy == "name");
             List<TagModel> tags = new List<TagModel>();
@@ -47,26 +55,26 @@ namespace Zadanie_rekrutacyjne.Services
             {
                 if (ascOrder)
                 {
-                    if (sortByName) tags = _context.Tags.ToList().OrderBy(t => t.Name).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
-                    else tags = _context.Tags.ToList().OrderBy(t => t.Share).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
+                    if (sortByName) tags = (await _repository.GetAllTagsAsync()).OrderBy(t => t.Name).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
+                    else tags = (await _repository.GetAllTagsAsync()).OrderBy(t => t.Share).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
                 }
                 else
                 {
-                    if (sortByName) tags = _context.Tags.ToList().OrderByDescending(t => t.Name).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
-                    else tags = _context.Tags.ToList().OrderByDescending(t => t.Share).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
+                    if (sortByName) tags = (await _repository.GetAllTagsAsync()).OrderByDescending(t => t.Name).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
+                    else tags = (await _repository.GetAllTagsAsync()).OrderByDescending(t => t.Share).Take(new Range((page - 1) * pageSize, page * pageSize)).ToList();
                 }
             }
             else
             {
                 if (ascOrder)
                 {
-                    if (sortByName) tags = await _context.Tags.OrderBy(t => t.Name).Take(new Range((page - 1) * pageSize, _context.Tags.Count())).ToListAsync();
-                    else tags = await _context.Tags.OrderBy(t => t.Share).Take(new Range((page - 1) * pageSize, _context.Tags.Count())).ToListAsync();
+                    if (sortByName) tags = (await _repository.GetAllTagsAsync()).OrderBy(t => t.Name).Take(new Range((page - 1) * pageSize, (await _repository.GetAllTagsAsync()).Count())).ToList();
+                    else tags = (await _repository.GetAllTagsAsync()).OrderBy(t => t.Share).Take(new Range((page - 1) * pageSize, (await _repository.GetAllTagsAsync()).Count())).ToList();
                 }
                 else
                 {
-                    if (sortByName) tags = await _context.Tags.OrderByDescending(t => t.Name).Take(new Range((page - 1) * pageSize, _context.Tags.Count())).ToListAsync();
-                    else tags = await _context.Tags.OrderByDescending(t => t.Share).Take(new Range((page - 1) * pageSize, _context.Tags.Count())).ToListAsync();
+                    if (sortByName) tags = (await _repository.GetAllTagsAsync()).OrderByDescending(t => t.Name).Take(new Range((page - 1) * pageSize, (await _repository.GetAllTagsAsync()).Count())).ToList();
+                    else tags = (await _repository.GetAllTagsAsync()).OrderByDescending(t => t.Share).Take(new Range((page - 1) * pageSize, (await _repository.GetAllTagsAsync()).Count())).ToList();
                 }
             }
             return tags;
@@ -74,15 +82,15 @@ namespace Zadanie_rekrutacyjne.Services
         /// <summary>
         /// Method used for resending request to StackOverflow API that makes program upload data into database.
         /// </summary>
-        public async Task Seed()
+        public async Task SeedAsync()
         {
             Log.Information("POST service method invoked.");
             try
             {
-                List<TagModel> list = await TagsProcessor.Load("2.3/tags?pagesize=50&order=desc&sort=popular&site=stackoverflow&filter=!bMsg5CXICdlFSp&page=", 25);
-                await _context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE Tags");
-                await _context.Tags.AddRangeAsync(list);
-                _context.SaveChanges();
+
+                List<TagModel> list = await _tagsApiClient.LoadAsync(new QueryTagsParameters() { baseUrl = "https://api.stackexchange.com/2.3/tags" });
+                await _repository.TruncateTableAsync("Tags");
+                await _repository.AddTagsListAsync(list);
             }
             catch (HttpRequestException ex)
             {

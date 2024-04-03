@@ -5,7 +5,9 @@ VisualStudioVersion = 17.9.34723.18
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zadanie rekrutacyjne", "Zadanie rekrutacyjne\Zadanie rekrutacyjne.csproj", "{0ED85E04-51EC-4AF0-86F4-C07708C3927B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zadanie RekrutacyjneTests", "Zadanie RekrutacyjneTests\Zadanie RekrutacyjneTests.csproj", "{210E5753-40FB-406B-9A2C-3C047644C63C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zadanie RekrutacyjneTests", "Zadanie RekrutacyjneTests\Zadanie RekrutacyjneTests.csproj", "{210E5753-40FB-406B-9A2C-3C047644C63C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zadanie RekrutacyjnieIntegrationTests", "Zadanie RekrutacyjnieIntegrationTests\Zadanie RekrutacyjnieIntegrationTests.csproj", "{5213DC7F-CA24-426A-8CAC-9EDC8CB6DEA0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{210E5753-40FB-406B-9A2C-3C047644C63C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{210E5753-40FB-406B-9A2C-3C047644C63C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{210E5753-40FB-406B-9A2C-3C047644C63C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5213DC7F-CA24-426A-8CAC-9EDC8CB6DEA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5213DC7F-CA24-426A-8CAC-9EDC8CB6DEA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5213DC7F-CA24-426A-8CAC-9EDC8CB6DEA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5213DC7F-CA24-426A-8CAC-9EDC8CB6DEA0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

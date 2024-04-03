@@ -6,6 +6,7 @@ using Zadanie_rekrutacyjne;
 using Zadanie_rekrutacyjne.Database;
 using Zadanie_rekrutacyjne.Interfaces;
 using Zadanie_rekrutacyjne.Models;
+using Zadanie_rekrutacyjne.Repositories;
 using Zadanie_rekrutacyjne.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,8 +25,13 @@ Log.Logger = new LoggerConfiguration()
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddScoped<ITagsService, TagsService>();
+builder.Services.AddScoped<ITagsRepository, TagsRepository>();
 builder.Services.AddSingleton<WasLoadedModel>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddHttpClient<ITagsApiClient, TagsApiClient>(apiClient => { }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler() { AutomaticDecompression = System.Net.DecompressionMethods.GZip});
+
+// Add HealthChecks services.
+builder.Services.AddHealthChecks();
 
 // Configure controllers and Swagger.
 builder.Services.AddControllers();
@@ -63,9 +69,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Initialize the API client
-StackOverflowApiHelper.InitializeClient("https://api.stackexchange.com/");
-
 // Configure the HTTP request pipeline.
 app.UseSwagger();
 app.UseSwaggerUI(c =>
@@ -77,6 +80,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.MapHealthChecks("/healthcheck");
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

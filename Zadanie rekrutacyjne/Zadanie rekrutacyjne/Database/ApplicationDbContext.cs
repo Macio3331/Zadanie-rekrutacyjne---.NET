@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Zadanie_rekrutacyjne.Interfaces;
 using Zadanie_rekrutacyjne.Models;
 
 namespace Zadanie_rekrutacyjne.Database

@@ -48,6 +48,7 @@ namespace Zadanie_rekrutacyjne.Controllers
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
+        [ResponseCache(Duration = 300)]
         public async Task<ActionResult<IEnumerable<TagModel>>> GetTagsAsync([FromQuery][Required]int page, [FromQuery][Required]string sortBy, [FromQuery][Required]string order)
         {
             if(page < 0) return BadRequest("Bad query parameter.");

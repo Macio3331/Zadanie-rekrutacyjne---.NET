@@ -27,8 +27,7 @@ Log.Logger = new LoggerConfiguration()
 var connectionString = "Data Source = " + Environment.GetEnvironmentVariable("DB_HOST") + ";" +
     " Initial Catalog = " + Environment.GetEnvironmentVariable("DB_NAME") + ";" +
     " User ID = sa; Password = " + Environment.GetEnvironmentVariable("DB_SA_PASSWORD") + ";" +
-    " Trusted_Connection = True; Integrated Security = True; Trust Server Certificate = True;";
-//var connectionString = Environment.GetEnvironmentVariable("ConnectionString");
+    " Trust Server Certificate = True; Trusted_Connection = True; Integrated Security = True;";
 builder.Services.AddScoped<ITagsService, TagsService>();
 builder.Services.AddScoped<ITagsRepository, TagsRepository>();
 builder.Services.AddSingleton<WasLoadedModel>();

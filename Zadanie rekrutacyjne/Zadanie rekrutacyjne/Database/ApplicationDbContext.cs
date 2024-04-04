@@ -31,7 +31,6 @@ namespace Zadanie_rekrutacyjne.Database
             {
                 Log.Error("Could not create a database.");
             }
-
         }
         /// <summary>
         /// Field representing a table of tags.

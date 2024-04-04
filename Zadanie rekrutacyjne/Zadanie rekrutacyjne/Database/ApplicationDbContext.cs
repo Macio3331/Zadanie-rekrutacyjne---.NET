@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Zadanie_rekrutacyjne.Interfaces;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Serilog;
 using Zadanie_rekrutacyjne.Models;
 
 namespace Zadanie_rekrutacyjne.Database
@@ -16,6 +18,20 @@ namespace Zadanie_rekrutacyjne.Database
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+            try
+            {
+                var databaseCreator = Database.GetService<IDatabaseCreator>() as RelationalDatabaseCreator;
+                if (databaseCreator != null)
+                {
+                    if (!databaseCreator.CanConnect()) databaseCreator.Create();
+                    if (!databaseCreator.HasTables()) databaseCreator.CreateTables();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Could not create a database.");
+            }
+
         }
         /// <summary>
         /// Field representing a table of tags.

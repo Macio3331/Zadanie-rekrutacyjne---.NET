@@ -1,0 +1,39 @@
+version: '3.4'
+
+networks:
+  backend_network:
+
+services:
+  zadanie_rekrutacyjne:
+    image: ${DOCKER_REGISTRY-}zadanierekrutacyjne
+    container_name: zadanie_rekrutacyjne
+    build:
+      context: .
+      dockerfile: Zadanie rekrutacyjne/Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - tags_database
+    environment:
+      - DB_HOST=SQLEXPRESS01
+      - DB_NAME=TagsDB
+      - DB_SA_PASSWORD=A5gf74D_bhajs49
+    networks:
+      - backend_network
+ 
+  tags_database:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: tags_database
+    ports:
+      - 1440:1433
+    restart: always
+    environment:
+      - ACCEPT_EULA="Y"
+      - MSSQL_SA_PASSWORD="A5gf74D_bhajs49"
+    networks:
+      - backend_network
+    volumes:
+      - "C:/DockerVolumes/SqlData/data:/var/opt/mssql/data"
+
+  

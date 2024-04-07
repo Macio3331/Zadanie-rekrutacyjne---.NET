@@ -23,11 +23,11 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 // Add services to the container.
-//var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var connectionString = "Data Source = " + Environment.GetEnvironmentVariable("DB_HOST") + ";" +
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+/*var connectionString = "Data Source = " + Environment.GetEnvironmentVariable("DB_HOST") + ";" +
     " Initial Catalog = " + Environment.GetEnvironmentVariable("DB_NAME") + ";" +
     " User ID = sa; Password = " + Environment.GetEnvironmentVariable("DB_SA_PASSWORD") + ";" +
-    " Trust Server Certificate = True; Trusted_Connection = True; Integrated Security = True;";
+    " Encrypt = False;";*/
 builder.Services.AddScoped<ITagsService, TagsService>();
 builder.Services.AddScoped<ITagsRepository, TagsRepository>();
 builder.Services.AddSingleton<WasLoadedModel>();

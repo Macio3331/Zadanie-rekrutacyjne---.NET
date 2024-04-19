@@ -25,6 +25,7 @@ services:
   tags_database:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: tags_database
+    hostname: tags_database
     ports:
       - 1433:1433
     restart: always

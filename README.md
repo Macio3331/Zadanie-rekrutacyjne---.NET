@@ -17,7 +17,7 @@ Utilize containerization to ensure repeatable project building and execution.
 Publish the solution in a GitHub repository.
 The entire system should be runnable solely by executing the command 'docker compose up'.
 
-The program downloads all needed data upon the first request and then uses it for all of the rest requests. To get the data user must speicfy the number of page (page=<number_of_page>, value by which tags should be sorted (sortBy=share or sortBy=name) and the order of sort (order=asc or order=desc). Share is passed as percentage value. Program contains Swagger that defines two possible endpoints - GET for acquiring information about tags and POST for triggering redownloading of tags. Application logs internet traffic in log file. Program works correctly upon Docker and can be run by executing the command 'docker compose up'.
+The program downloads all needed data upon the first request and then uses it for all of the rest requests. To get the data user must specify the page number (page=<number_of_page>), value by which tags should be sorted (sortBy=share or sortBy=name) and the order of sort (order=asc or order=desc). Share is passed as percentage value. Program contains Swagger that defines two possible endpoints - GET for acquiring information about tags and POST for triggering redownloading of tags. Application logs internet traffic in log file. Program works correctly upon Docker and can be run by executing the command 'docker compose up'.
 
 Important!
 Due to StackExchange's limitations, there is restricted number of possible connections with StackOverflow's API. Hence there is limited times application can be started (since it always fetches data at the first request after the startup) - this number is around 15 launchings.
